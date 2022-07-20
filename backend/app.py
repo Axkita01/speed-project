@@ -13,6 +13,9 @@ clients = {
     'p1': None,
     'p2': None
 }
+
+deck_tops = [[None, None], [None, None]]
+
 total_cards = [
     ['one', 'red', 1],
     ['one', 'black', 2],
@@ -71,28 +74,20 @@ total_cards = [
 
 @socketio.on('connect')
 def connect():
-    print(clients)
-    print(request.sid)
     if not clients['p1']:
         clients['p1'] = request.sid
     
-    elif not clients['p2']:
+    if not clients['p2']:
         clients['p2'] = request.sid
-    
-    else:
-        return
 
 @socketio.on('disconnect')
 def disconnect():
-    print(clients)
     if request.sid == clients['p1']:
         clients['p1'] = clients['p2']
         clients['p2'] = None
     
     else:
         clients['p2'] = None
-    print('disconnected')
-    print(clients)
 @socketio.on('push')
 def handlePlace():
     message = 'Hi!'
@@ -105,15 +100,22 @@ def handleCard(number):
 @socketio.on('reset')
 #FIXME: make sure reset signal send from one of connected players
 def reset_game():
+    if request.sid not in clients.keys():
+        return
+    deck_tops = [{'color': 'empty', 'number': 'empty'}, {'color': 'empty', 'number': 'empty'}]
     cards = [card for card in total_cards]
     shuffle(cards)
-    print(cards)
     player1_cards = cards[:25]
     player2_cards = cards[25:51]
     sides = cards[51:]
     emit('reset', player1_cards, room=clients['p1'])
     emit('reset', player2_cards, room=clients['p2'])
+    emit('tops-change', deck_tops)
 
+@socketio.on('place')
+def changeTops(element):
+    elements = element
+    emit('tops-change', elements)
 
 if __name__ == '__main__':
     socketio.run(app)

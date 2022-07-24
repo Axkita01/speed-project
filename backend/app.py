@@ -93,7 +93,7 @@ def disconnect():
     
     else:
         clients['p2'] = None
-
+    print('dicon')
 @socketio.on('card')
 def handleCard(number):
     emit('card-res', number)
@@ -106,17 +106,62 @@ def reset_game():
     deck_tops = [{'color': 'empty', 'number': 'empty'}, {'color': 'empty', 'number': 'empty'}]
     cards = [card for card in total_cards]
     shuffle(cards)
-    player1_cards = cards[:25]
-    player2_cards = cards[25:51]
-    sides = cards[51:]
+    player1_cards = cards[:21]
+    player2_cards = cards[21:42]
+    sides = cards[42:]
     emit('reset', player1_cards, room=clients['p1'])
     emit('reset', player2_cards, room=clients['p2'])
-    emit('tops-change', deck_tops)
+    emit('tops-change', deck_tops, broadcast=True)
+    emit('side-deck', [sides[:5], sides[5:]], broadcast = True)
 
 @socketio.on('place')
 def changeTops(element):
     elements = element
     emit('tops-change', elements, broadcast = True)
+
+@socketio.on('update-opp')
+#optimize this, creates slight delays
+def updateOppHandLength(hand_length):
+    opp = [0] * hand_length
+    if request.sid == clients['p1']:
+        emit('update-opp', opp, room = clients['p2'])
+    
+    elif request.sid == clients['p2']:
+        emit('update-opp', opp, room=clients['p1'])
+
+    else:
+        return
+
+@socketio.on('noplace')
+def noPlace():
+    if request.sid == clients['p1']:
+        emit('noplace', room = clients['p2'])
+    
+    elif request.sid == clients['p2']:
+        emit('noplace', room = clients['p1'])
+    
+    else:
+        return
+
+@socketio.on('noplacemutual')
+def noPlaceMutual (sides):
+    left = sides[0]
+    right = sides[1]
+    deck_tops = [{'color': left[0][1], 'number': left[0][0]}, {'color': right[0][1], 'number': right[0][0]}]
+    emit('tops-change', deck_tops, broadcast = True)
+    emit('side-deck', [left[1:], right[1:]], broadcast = True)
+
+
+@socketio.on('winner')
+def winner():
+    if request.sid == clients['p1']:
+        emit('winner', True, room = clients['p1'])
+        emit('winner', False, room = clients['p2'])
+    elif request.sid == clients['p2']:
+        emit('winner', False, room = clients['p1'])
+        emit('winner', True, room = clients['p2'])
+    else:
+        return
 
 if __name__ == '__main__':
     socketio.run(app)

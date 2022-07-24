@@ -145,6 +145,8 @@ def noPlace():
 
 @socketio.on('noplacemutual')
 def noPlaceMutual (sides):
+    if len(sides[0]) == 0 or len(sides[1]) == 0:
+        emit('winner', 'tie', broadcast = True)
     left = sides[0]
     right = sides[1]
     deck_tops = [{'color': left[0][1], 'number': left[0][0]}, {'color': right[0][1], 'number': right[0][0]}]
@@ -162,6 +164,15 @@ def winner():
         emit('winner', True, room = clients['p2'])
     else:
         return
+
+@socketio.on('resetplace')
+def canPlace():
+    print('success')
+    if request.sid == clients['p1']:
+        emit('resetplace', room = clients['p2'])
+        
+    if request.sid == clients['p2']:
+        emit('resetplace', room = clients['p1'])
 
 if __name__ == '__main__':
     socketio.run(app)

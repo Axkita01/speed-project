@@ -7,7 +7,7 @@ from flask_socketio import SocketIO
 from flask_socketio import emit
 
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins='*', logger=True)
+socketio = SocketIO(app, cors_allowed_origins = '*')
 
 clients = {
     'p1': None,
@@ -74,6 +74,10 @@ total_cards = [
 
 @socketio.on('connect')
 def connect():
+    if clients['p1'] and clients['p2']:
+        emit('rejection', room=request.sid)
+        return 
+
     if request.sid in clients.values():
         return
         
@@ -83,17 +87,22 @@ def connect():
     elif not clients['p2']:
         clients['p2'] = request.sid
     
-    print(clients)
-
+    if clients['p1'] and clients['p2']:
+        emit("connection", broadcast = True)
+    
 @socketio.on('disconnect')
 def disconnect():
+    if request.sid not in clients.values():
+        return
+    emit('disconnection', broadcast = True)
     if request.sid == clients['p1']:
         clients['p1'] = clients['p2']
         clients['p2'] = None
     
     else:
         clients['p2'] = None
-    print('dicon')
+    print('disconnected')
+
 @socketio.on('card')
 def handleCard(number):
     emit('card-res', number)
@@ -101,7 +110,8 @@ def handleCard(number):
 @socketio.on('reset')
 #FIXME: make sure reset signal send from one of connected players
 def reset_game():
-    if request.sid not in clients.values():
+    #prevents double reset
+    if request.sid != clients['p1']:
         return
     deck_tops = [{'color': 'empty', 'number': 'empty'}, {'color': 'empty', 'number': 'empty'}]
     cards = [card for card in total_cards]

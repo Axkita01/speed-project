@@ -14,7 +14,7 @@ clients = {
     'p2': None
 }
 
-deck_tops = [['empty', 'empty'], ['empty', 'empty']]
+deck_tops = [['', ''], ['', '']]
 
 total_cards = [
     ['1', 'red', 1],
@@ -113,7 +113,7 @@ def reset_game():
     #prevents double reset
     if request.sid != clients['p1']:
         return
-    deck_tops = [{'color': 'empty', 'number': 'empty'}, {'color': 'empty', 'number': 'empty'}]
+    deck_tops = [{'color': '', 'number': ''}, {'color': '', 'number': ''}]
     cards = [card for card in total_cards]
     shuffle(cards)
     player1_cards = cards[:21]

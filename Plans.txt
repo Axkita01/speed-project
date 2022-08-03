@@ -1,0 +1,2 @@
+- Add way to create rooms and join certain rooms (will likely utilizing mapping amount of rooms to a list)
+- finish styling margins and spacing in play screen

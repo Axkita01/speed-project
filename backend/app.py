@@ -113,7 +113,7 @@ def reset_game():
     #prevents double reset
     if request.sid != clients['p1']:
         return
-    deck_tops = [{'color': '', 'number': ''}, {'color': '', 'number': ''}]
+    deck_tops = [{'color': '', 'number': '', 'selected': False}, {'color': '', 'number': '', 'selected': False}]
     cards = [card for card in total_cards]
     shuffle(cards)
     player1_cards = cards[:21]
@@ -159,7 +159,8 @@ def noPlaceMutual (sides):
         emit('winner', 'tie', broadcast = True)
     left = sides[0]
     right = sides[1]
-    deck_tops = [{'color': left[0][1], 'number': left[0][0]}, {'color': right[0][1], 'number': right[0][0]}]
+    deck_tops = [{'color': left[0][1], 'number': left[0][0], 'selected': False}, 
+    {'color': right[0][1], 'number': right[0][0], 'selected': False}]
     emit('tops-change', deck_tops, broadcast = True)
     emit('side-deck', [left[1:], right[1:]], broadcast = True)
 

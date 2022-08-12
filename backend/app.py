@@ -160,11 +160,12 @@ def updateOppHandLength(data):
     hand_length = data['hand_length']
     room = data['room']
     opp = [0] * hand_length
+    print(data['reduce'])
     if request.sid == clients[room]['p1']:
-        emit('update-opp', opp, room = clients[room]['p2'])
+        emit('update-opp', data['reduce'], room = clients[room]['p2'])
     
     elif request.sid == clients[room]['p2']:
-        emit('update-opp', opp, room=clients[room]['p1'])
+        emit('update-opp', data['reduce'], room=clients[room]['p1'])
 
     else:
         return

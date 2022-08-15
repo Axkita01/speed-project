@@ -11,7 +11,11 @@ app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins = '*')
 
 clients = {}
+
+#
 rooms = {}
+
+#Set to hash user rooms
 users = set()
 
 deck_tops = [['', ''], ['', '']]
@@ -97,7 +101,6 @@ def connect(roomno):
     if clients[roomno]['p1'] and clients[roomno]['p2']:
         emit("connection", room = clients[roomno]['p1'])
         emit("connection", room = clients[roomno]['p2'])
-    print(clients)
     
 @socketio.on('disconnect')
 def disconnect():
@@ -106,32 +109,25 @@ def disconnect():
     room = rooms[request.sid]
     users.remove(request.sid)
     del rooms[request.sid]
-    
-    emit('disconnection', broadcast = True)
     if request.sid == clients[room]['p1']:
         if clients[room]['p2']:
             clients[room]['p1'] = clients[room]['p2']
+            emit('disconnection', room = clients[room]['p1'])
             clients[room]['p2'] = None
-
 
         else:
             del clients[room]
     
     else:
         clients[room]['p2'] = None
-    
-    print('disconnected')
+        emit('disconnection', room = clients[room]['p1'])
 
 @socketio.on('card')
 def handleCard(number):
     emit('card-res', number)
 
 @socketio.on('reset')
-#FIXME: make sure reset signal send from one of connected players
 def reset_game(room):
-    #prevents double reset
-    if request.sid != clients[room]['p1']:
-        return
     deck_tops = [{'color': '', 'number': '', 'selected': False}, {'color': '', 'number': '', 'selected': False}]
     cards = [card for card in total_cards]
     shuffle(cards)
@@ -157,10 +153,7 @@ def changeTops(data):
 @socketio.on('update-opp')
 #optimize this, creates slight delays
 def updateOppHandLength(data):
-    hand_length = data['hand_length']
     room = data['room']
-    opp = [0] * hand_length
-    print(data['reduce'])
     if request.sid == clients[room]['p1']:
         emit('update-opp', data['reduce'], room = clients[room]['p2'])
     
@@ -210,7 +203,6 @@ def winner(room):
 
 @socketio.on('resetplace')
 def canPlace(room):
-    print('success')
     if request.sid == clients[room]['p1']:
         emit('resetplace', room = clients[room]['p2'])
         

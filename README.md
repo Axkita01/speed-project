@@ -7,3 +7,5 @@ This project was built using React Native as frontend and Flask as the backend. 
 This project is still a work in progress and will continue to be updated.
 
 The Rules for the game can be found by clicking the "Rules" button.
+
+Link: https://master--sparkling-cranachan-408af8.netlify.app/
